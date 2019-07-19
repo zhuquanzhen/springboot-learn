@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SysIpBlacklistDao">
+	
+	<select id="selectById" resultType="SysIpBlacklist">
+        SELECT id, ip, type, create_date, create_id, delete_flag, delete_time, delete_id FROM sys_ip_blacklist WHERE id=#{id} AND delete_flag !=1 
+    </select>
+    <select id="selectByIp" resultType="SysIpBlacklist">
+        SELECT id, ip, type, create_date, create_id, delete_flag, delete_time, delete_id FROM sys_ip_blacklist WHERE ip=#{ip}   AND delete_flag !=1 
+limit 1
+    </select>
+    
+    <insert id="insert">
+		INSERT INTO sys_ip_blacklist(id, ip, type, create_date, create_id) VALUES (#{id}, #{ip}, #{type}, #{createDate}, #{createId})
+	</insert>
+    
+	
+</mapper>

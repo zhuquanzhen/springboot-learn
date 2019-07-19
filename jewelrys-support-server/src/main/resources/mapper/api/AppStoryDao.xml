@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppStoryDao">	
+	
+	<select id="selectList" resultType="AppStory">
+		SELECT
+			a.id,
+			a.title,
+			a.status,
+			a.create_date,
+			c.name AS "merName",
+			d.phone AS "phone" 
+		FROM
+			app_story a
+			LEFT JOIN cer_info b ON b.no = a.cert_no AND b.delete_flag = 0
+			LEFT JOIN mer_info c ON c.id = b.mert_id AND c.delete_flag = 0
+			LEFT JOIN app_account d ON d.id = a.create_id AND d.delete_flag = 0
+		<where>
+	
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				a.create_date BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<if test="status != null and status != ''">
+				AND a.status = #{status}
+			</if>
+			<if test="search != null and search != ''">
+				AND (d.phone like "%"#{search}"%" OR c.name like "%"#{search}"%" OR a.title like "%"#{search}"%")
+			</if>
+			AND a.delete_flag = 0 AND a.status IN("dcl", "yfb", "ych")
+		</where>
+		ORDER BY create_date DESC
+	</select>
+	
+	<select id="selectById" resultType="AppStory">
+		SELECT
+			a.id,
+			a.title,
+			a.status,
+			a.cert_no,
+			a.reject,
+			a.create_date,
+			c.name AS "merName",
+			c.logo AS "logo",
+			f.content AS "content"
+		FROM
+			app_story a 
+			LEFT JOIN cer_info b ON b.no = a.cert_no AND b.delete_flag = 0
+			LEFT JOIN mer_info c ON c.id = b.mert_id AND c.delete_flag = 0
+			LEFT JOIN com_content f ON f.id = a.content_id AND f.delete_flag =0
+		WHERE
+			a.id = #{id} AND a.delete_flag = 0
+	</select>
+	
+	<select id="selectFile" resultType="String">
+		SELECT file_id FROM app_story_file WHERE story_id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectContentId" resultType="String">
+		SELECT content_id FROM app_story WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</select>
+	
+	<update id="updatStatusByAppStory" parameterType="AppStory">
+		UPDATE app_story SET status = #{status} WHERE id=#{id}
+	</update>
+	
+	<update id="updateByMap">
+		UPDATE app_story SET status = #{status}, audit_id = #{auditId}, audit_date = #{auditDate}, reject = #{reject} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<delete id="deleteByMap">
+		UPDATE app_story SET delete_flag = 1, delete_time = #{deleteTime} , delete_id = #{deleteId} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+	
+	<select id="selectStoryNum" resultType="Integer">
+	    SELECT COUNT(*) FROM app_story WHERE create_id = #{createId} AND delete_flag = 0
+	</select>
+</mapper>

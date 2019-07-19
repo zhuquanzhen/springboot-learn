@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SysSmsDao">
+
+    <select id="selectList" resultType="SysSms">
+    	SELECT 
+    		a.id, 
+    		a.phone, 
+    		a.content, 
+    		a.create_date,
+    		a.status,
+    		b.name as "typeCode"
+    	FROM 
+    		sys_sms a
+    		LEFT JOIN sys_dict b ON b.code = a.type_code AND b.delete_flag = 0 AND b.status = 1
+    	<where>
+    		<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+    			a.create_date BETWEEN #{startDate} AND #{endDate}
+    		</if>
+    		<if test="typeCode != null and typeCode != ''">
+    			AND a.type_code = #{typeCode}
+    		</if>
+    		<if test="phone != null and phone != ''">
+    			AND a.phone = #{phone}
+    		</if>
+    		AND a.delete_flag = 0
+    	</where>
+    	ORDER BY create_date DESC
+    </select>
+	
+	<delete id="deleteByMap">
+		UPDATE sys_sms SET delete_flag = 1, delete_time = #{deleteTime}, delete_id = #{deleteId} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach> 
+	</delete>
+	
+	<insert id="insert">
+			INSERT INTO sys_sms(id, phone, content, type_code, create_date, status, code,response_log,send_ip) VALUES (#{id}, #{phone}, #{content}, #{typeCode}, #{createDate}, #{status}, #{code},#{responseLog},#{sendIp})
+	</insert>
+	
+	<select id="selectNewestByPhoneAndTypeCode" resultType="SysSms">
+		SELECT id, phone, content, type_code, create_date, status, code,response_log FROM sys_sms WHERE phone = #{phone} AND type_code = #{typeCode} AND delete_flag = 0 AND status = 1 ORDER BY create_date DESC LIMIT 1 
+	</select>
+	
+	<select id="selectById" resultType="SysSms">
+		SELECT id, phone, content, type_code, create_date, status, code,response_log FROM sys_sms WHERE id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectNewsByPhone" resultType="SysSms">
+		SELECT id, phone, content, type_code, create_date, status, code,response_log FROM sys_sms WHERE phone = #{phone}  AND delete_flag = 0 ORDER BY create_date DESC LIMIT 1 
+	</select>
+	
+	<select id="selectNumberByIpAndTime" resultType="Integer">
+		SELECT  count(id) as number  FROM `sys_sms` WHERE send_ip = #{ip} AND status !=0 AND(UNIX_TIMESTAMP(now())*1000 -create_date)  <![CDATA[< ]]>#{time}
+	</select>
+</mapper>

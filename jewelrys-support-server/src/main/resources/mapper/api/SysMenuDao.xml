@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SysMenuDao">
+
+	<sql id="colums">id, name, url, icon, perms, type_code, order_num, parent_id</sql>
+
+	<select id="findByParentId" resultType="SysMenu">
+		SELECT <include refid="colums" /> FROM sys_menu WHERE parent_id = #{id} AND delete_flag = 0 ORDER BY order_num
+	</select>
+	
+	<select id="selectByIdList" resultType="SysMenu">
+		SELECT <include refid="colums" /> FROM sys_menu WHERE id IN	<foreach collection="idList" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach> AND delete_flag = 0
+	</select>
+	
+	<select id="selectParentIdCount" resultType="Integer">
+		SELECT count(*) FROM sys_menu WHERE parent_id = 0 AND delete_flag = 0
+	</select>
+	
+	<select id="selectAllMenuId" resultType="int">
+		SELECT DISTINCT b.menu_id FROM sys_user_role a LEFT JOIN sys_role_menu b ON a.role_id = b.role_id WHERE a.user_id = #{userId}
+	</select>
+	
+	<select id="selectAllBtn" resultType="SysMenu">
+		SELECT <include refid="colums" /> FROM sys_menu WHERE parent_id = #{id} AND delete_flag = 0 AND type_code = "btn"
+	</select>
+	
+	<select id="selectBtnCount" resultType="Integer">
+		SELECT count(*) FROM sys_menu WHERE parent_id = #{id} AND delete_flag = 0 AND type_code = "btn"
+	</select>
+	
+	<select id="selectById" resultType="SysMenu">
+		SELECT <include refid="colums" /> FROM sys_menu WHERE id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectByParentIdAndName" resultType="SysMenu">
+		SELECT id, name, type_code, parent_id FROM sys_menu WHERE parent_id = #{parentId} AND name = #{name} AND delete_flag = 0
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_menu(name, order_num, type_code, parent_id, url, perms) VALUES (#{name}, #{orderNum}, #{typeCode}, #{parentId}, #{url}, #{perms})
+	</insert>
+	
+	<delete id="deleteByMap">
+		UPDATE sys_menu SET delete_time = #{deleteTime}, delete_flag = 1, delete_id = #{deleteId} WHERE id IN	<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+	
+	<update id="update">
+		UPDATE sys_menu
+		<set>
+			<if test="name != null and name != ''">name = #{name},</if>
+			<if test="typeCode != null and typeCode != ''">type_code = #{typeCode},</if>
+			<if test="parentId != null">parent_id = #{parentId},</if>
+			<if test="icon != null and icon != ''">icon = #{icon},</if>
+			<if test="url != null and url != ''">url = #{url},</if>
+			<if test="perms != null and perms != ''">perms = #{perms},</if>
+			order_num = #{orderNum}
+		</set>
+		WHERE id = #{id}
+	</update>
+</mapper>

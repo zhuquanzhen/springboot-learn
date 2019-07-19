@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.MerNewsDao">
+	<select id="selectList" parameterType="Map" resultType="MerNews">
+		SELECT
+		DISTINCT
+		m.id,
+		m.title,
+		mi.name,
+		m.status,
+		m.pv,
+		m.fav,
+		m.create_date as createDate
+		FROM mer_news m LEFT JOIN mer_info mi ON (mi.id = m.create_id)
+		LEFT JOIN app_account_mert aam ON (aam.mert_id = mi.id)
+		<where>
+			( m.status='dcl' OR m.status='yfb' OR
+			m.status='ych')
+			AND
+			m.delete_flag = 0
+			<if
+				test="startDate != null and startDate != ''and endDate != null and endDate != ''">AND m.create_date
+				BETWEEN #{startDate}
+				AND #{endDate}
+			</if>
+			<if test="status != null and status != ''">AND m.status = #{status}</if>
+			<if test="title != null and title != ''">AND (m.title like CONCAT('%','${title}','%' ) OR mi.name
+				like
+				CONCAT('%','${title}','%' ))
+			</if>
+		</where>
+		ORDER BY m.create_date DESC
+	</select>
+
+	<update id="updateByMap" parameterType="Map">
+		UPDATE mer_news m
+		SET
+		<if test="reject != null and reject != ''">m.reject = #{reject},</if>
+		<if test="publishDate != null and publishDate != ''">m.create_date = #{publishDate},</if>
+		<if test="status != null and status != ''">m.status=#{status}</if>
+		<where>
+			<include refid="where_id">
+
+			</include>
+		</where>
+	</update>
+
+	<update id="delete" parameterType="Map">
+		UPDATE mer_news m LEFT JOIN com_content cc ON m.content_id= cc.id SET
+		m.delete_flag = #{deleteFlag}, m.delete_time = #{deleteTime},
+		m.delete_id = #{delectId},
+		cc.delete_flag = #{deleteFlag}, cc.delete_time = #{deleteTime}, cc.delete_id =
+		#{delectId}
+		<where>
+
+			<include refid="where_id">
+
+			</include>
+		</where>
+
+
+	</update>
+
+	<sql id="where_id">
+
+		<if test="list!=null">
+			m.id IN
+			<foreach collection="list" item="id" separator="," open="("
+				close=")">
+				#{id}
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="selectById" resultType="MerNews">
+		SELECT
+		m.id,
+		m.title,
+		sdt.name AS label,
+		m.label AS labelCode,
+		m.status,
+		m.file_id,
+		m.reject,
+		mi.name,
+		c.content
+		FROM
+		mer_news m
+		LEFT JOIN com_content c ON (m.content_id = c.id)
+		LEFT JOIN mer_info mi ON (mi.id = m.create_id)
+		LEFT JOIN sys_dict sdt ON (sdt.code = m.label)
+		WHERE m.id = #{id} AND m.delete_flag = 0
+	</select>
+
+	<select id="selectListByMap" parameterType="Map" resultType="String">
+		SELECT id FROM mer_news m
+		<where>
+			m.delete_flag = 0 AND
+			<include refid="where_id">
+			</include>
+			<if test="statusList!=null">
+				AND m.status in
+				<foreach collection="statusList" item="status" separator=","
+					open="(" close=")">
+					#{status}
+				</foreach>
+			</if>
+		</where>
+
+	</select>
+
+	<select id="selectMerNewsListById" resultType="MerNews"
+		parameterType="Map">
+		SELECT m.id, m.title, m.status FROM mer_news m
+		<where>
+			<include refid="where_id"></include>
+			AND m.delete_flag=0
+		</where>
+	</select>
+
+</mapper>

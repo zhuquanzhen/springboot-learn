@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppResultKeywordDao">
+	
+	<sql id="baseColums">id, keyword, app_article_id, status, create_date</sql>
+	
+	<select id="selectList" resultType="AppResultKeyword">
+		SELECT 
+			<include refid="baseColums"/> 
+		FROM 
+			app_result_keyword 
+		WHERE 
+			delete_flag = 0 
+			AND app_article_id = #{artId}
+		<if test="status != null and status != ''">AND status = #{status}</if>
+		<if test="keyword != null and keyword != ''">AND keyword like "%"#{keyword}"%"</if>
+	</select>
+   	
+   	<select id="selectById" resultType="AppResultKeyword">
+   		SELECT <include refid="baseColums"/> FROM app_result_keyword WHERE delete_flag = 0 AND id = #{id}
+   	</select>
+   	
+   	<select id="selectByKeyword" resultType="AppResultKeyword">
+   		SELECT <include refid="baseColums"/> FROM app_result_keyword WHERE delete_flag = 0 AND keyword = #{keyword}
+   	</select>
+   	
+   	<select id="selectByArtId" resultType="Integer">
+   		SELECT COUNT(*) FROM app_result_keyword WHERE delete_flag = 0 AND app_article_id = #{artId}
+   	</select>
+   	
+   	<insert id="insert">
+   		INSERT INTO app_result_keyword(keyword, app_article_id, status, create_date, create_id) VALUES(#{keyword}, #{appArticleId}, #{status}, #{createDate}, #{createId})
+   	</insert>
+   	
+   	<update id="update">
+   		UPDATE app_result_keyword
+   		<set>
+   			<if test="keyword != null and keyword != ''">keyword = #{keyword},</if>
+   			<if test="status != null">status = #{status}</if>
+   		</set>
+   		WHERE id = #{id}
+   	</update>
+   	
+   	<update id="updateByMap">
+   		UPDATE app_result_keyword SET status = #{status} WHERE id IN<foreach collection="id" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+   	</update>
+   	
+   	<delete id="deleteByMap">
+   		UPDATE app_result_keyword SET delete_flag = 1, delete_time = #{deleteTime}, delete_id = #{deleteId} WHERE id IN<foreach collection="id" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+   	</delete>
+   	
+   	<delete id="deleteByArtId">
+   		UPDATE app_result_keyword SET delete_flag = 1, delete_time = #{deleteTime}, delete_id = #{deleteId} WHERE app_article_id = #{id}
+   	</delete>
+   	
+</mapper>

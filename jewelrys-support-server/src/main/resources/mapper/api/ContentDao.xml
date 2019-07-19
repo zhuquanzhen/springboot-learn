@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.ContentDao">
+
+    <select id="selectById" resultType="Content">
+    	SELECT id, type_code, content FROM com_content WHERE id = #{id}
+    </select>
+
+	<insert id="insert" parameterType="Content">
+		INSERT INTO com_content(id,type_code, content) VALUES (#{id},#{typeCode}, #{content})
+	</insert>
+	
+	<delete id="deleteByMap">
+		UPDATE com_content SET delete_flag = 1, delete_time = #{deleteTime}, delete_id = #{deleteId} WHERE id IN <foreach collection="contentId" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+	
+	<update id="update" parameterType="Content">
+	  UPDATE com_content 
+      <set>
+        <if test="apiLogId != null and apiLogId != ''">api_log_id=#{apiLogId},</if>
+        <if test="checkStatus != null">check_status=#{checkStatus}</if>
+      </set>
+      <where>
+      id=#{id}
+      </where>
+	</update>
+	
+</mapper>

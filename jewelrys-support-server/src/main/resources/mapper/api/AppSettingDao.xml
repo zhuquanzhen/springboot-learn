@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppSettingDao">
+
+	<select id="selectList" resultType="AppSetting">
+		SELECT id,file_id,name,link,show_flag,order_num,dir,remark FROM
+		app_setting
+		<where>
+			delete_flag = 0
+			<if test="showFlag != null and showFlag != ''">AND show_flag = #{showFlag}</if>
+			<if test="name != null and name != ''">AND name LIKE "%"#{name}"%"</if>
+			<if test="dir != null and dir != ''">AND dir = #{dir}</if>
+		</where>
+		order by id DESC
+	</select>
+
+	<insert id="insert">
+		insert into app_setting (file_id,name,link, order_num,dir,remark) VALUES (#{fileId},#{name},#{link},#{orderNum},#{dir},#{remark})
+	</insert>
+
+	<update id="updateReleases">
+		UPDATE app_setting SET show_flag = #{type} WHERE id IN<foreach collection="Ids" item="ids" open="(" close=")" separator=",">#{ids}</foreach>
+	</update>
+
+	<update id="deleteByIds">
+		UPDATE app_setting SET delete_flag = 1,delete_time = #{deleteTime},delete_id = #{deleteId} WHERE id IN<foreach collection="Ids" item="ids" open="(" close=")" separator=",">#{ids}</foreach>
+	</update>
+
+	<update id="update">
+		UPDATE app_setting
+		<set>
+			<if test="name != null and name != ''"> name = #{name},</if>
+			<if test="fileId != null and fileId != ''"> file_id = #{fileId},</if>
+			<if test="dir != null and dir != ''"> dir = #{dir},</if>
+			link = #{link},
+			order_num = #{orderNum},
+			remark = #{remark}		
+		</set>
+		WHERE id = #{id} AND delete_flag = 0
+	</update>
+	
+	<select id="selectNumber" resultType="Integer"
+		parameterType="Map">
+		SELECT
+		count(1)
+		FROM app_setting
+		<where>
+			id IN
+			<foreach collection="Ids" item="ids" open="(" close=")"
+				separator=",">
+				#{ids}
+			</foreach>
+			AND delete_flag = 0
+		</where>
+	</select>
+
+	<select id="selectReleases" resultType="Integer"
+		parameterType="Map">
+		SELECT
+		count(1)
+		FROM app_setting
+		<where>
+			id IN
+			<foreach collection="Ids" item="ids" open="(" close=")"
+				separator=",">
+				#{ids}
+			</foreach>
+			AND delete_flag = 0 AND show_flag = #{showFlag}
+		</where>
+	</select>
+
+    <select id="selectById" resultType="AppSetting">
+        SELECT id,file_id,name,link,show_flag,order_num,dir,remark FROM
+		app_setting where id = #{id} AND delete_flag = 0
+    </select>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.CerInfoDao">
+	
+	<select id="selectList" resultType="CerInfo">
+		SELECT id, no, code FROM cer_info WHERE no IN<foreach collection="no" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>AND delete_flag = 0<if test="certNo != null and certNo != ''">AND no = #{certNo}</if>
+	</select>
+
+	<update id="updateByMap">
+		UPDATE cer_info SET mert_id = #{mertId} WHERE no IN <foreach collection="no" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<select id="selectCount" resultType="Integer">
+		SELECT COUNT(*) FROM cer_info WHERE delete_flag = 0
+	</select>
+	
+	<select id="selectNumByAccountId" resultType="Integer">
+		SELECT COUNT(*) FROM cer_info WHERE delete_flag = 0 AND status = 1 AND last_owner = #{accountId}
+	</select>
+	
+	<select id="selectCerInfoByMertId" resultType="Integer">
+		SELECT COUNT(*) FROM cer_info WHERE mert_id = #{mertId} AND delete_flag = 0
+	</select>
+	
+	<!-- 查询这个送检厂商下所可以被关联的证书 -->
+	<select id="selectCerInfoByClintId" resultType="CerInfo">
+	    SELECT id,NO,CODE FROM  cer_info WHERE (mert_id = 0 OR mert_id IS NULL) AND delete_flag = 0 AND vendor_client_id IN 
+	    <foreach collection="clintIds" item="clintId" open="(" close=")" separator=",">
+	       #{clintId}
+	    </foreach>
+	    
+	</select>
+	
+	<update id="updateMertId">
+        UPDATE cer_info SET mert_id = #{mertId} WHERE id IN 
+      <foreach collection="cerInfos" item="cerInfo" open="(" close=")" separator=",">
+      		#{cerInfo.id}
+          </foreach>
+    </update>
+	
+	<update id="deleteCerInfo">
+        UPDATE cer_info SET mert_id = 0 WHERE vendor_client_id IN 
+      <foreach collection="clintIds" item="clintId" open="(" close=")" separator=",">
+      		#{clintId}
+          </foreach>
+          AND mert_id = #{mertId} 
+    </update>
+	
+</mapper>

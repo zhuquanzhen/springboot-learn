@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.MerStoryFileDao">
+	
+	<update id="deleteByMap">
+		UPDATE mer_story_file SET delete_flag = 1, delete_time = #{deleteTime} , delete_id = #{deleteId} WHERE story_id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+</mapper>

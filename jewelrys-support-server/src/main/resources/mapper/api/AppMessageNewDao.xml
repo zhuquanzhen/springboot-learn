@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppMessageNewDao">
+
+    <sql id="baseColumns">
+     id, label, title, content, url, status, send_date, create_date, group_flag, type_code,
+     type_name, message_type, send_num
+    </sql>
+
+    <insert id="insert">
+      insert into app_message_new (<include refid="baseColumns"/>) values
+      (#{id},#{label},#{title},#{content},#{url},#{status},#{sendDate},#{createDate},#{groupFlag},#{typeCode},#{typeName},#{messageType},send_num + #{sendNum})
+    </insert>
+
+    <!--查询-->
+    <select id="selectList" resultType="AppMessageNew">
+        SELECT
+        id,
+        label,
+        title,
+        content,
+        url,
+        STATUS,
+        send_date,
+        create_date,
+        group_flag,
+        type_code,
+        type_name,
+        message_type,
+        send_num,
+        member
+        FROM
+        (SELECT
+        amn.id,
+        amn.label,
+        amn.title,
+        amn.content,
+        amn.url,
+        amn.STATUS,
+        amn.send_date,
+        amn.create_date,
+        amn.group_flag,
+        amn.type_code,
+        amn.type_name,
+        amn.message_type,
+        amn.send_num,
+        aam.app_account_phone AS member
+        FROM
+        app_message_new amn
+        LEFT JOIN app_account_message aam
+        ON aam.app_message_new_id = amn.id
+        WHERE amn.delete_flag = 0
+        AND amn.group_flag = 0
+        UNION
+        ALL
+        SELECT
+        id,
+        label,
+        title,
+        content,
+        url,
+        STATUS,
+        send_date,
+        create_date,
+        group_flag,
+        type_code,
+        type_name,
+        message_type,
+        send_num,
+        '所有人' AS member
+        FROM
+        app_message_new amn
+        WHERE amn.delete_flag = 0
+        AND amn.group_flag = 1) un_table
+        <where>
+            <if test="id != null and id != ''">AND id = #{id}</if>
+            <if test="startDate != null and startDate != ''">AND create_date &gt; #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND create_date &lt; #{endDate}</if>
+            <if test="querys != null and querys != ''">AND title like "%"#{querys}"%" </if>
+        </where>
+        ORDER BY create_date DESC
+    </select>
+
+    <!--详情查询-->
+    <select id="selectById" resultType="AppMessageNew">
+        SELECT
+         <include refid="baseColumns"/>
+        FROM
+        app_message_new
+        WHERE
+        id = #{id}
+    </select>
+
+    <!--更新-->
+    <update id="update">
+        UPDATE app_message_new
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="groupFlag != null">group_flag = #{groupFlag},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sendDate != null and sendDate != ''">send_date = #{sendDate},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            label = #{label},
+            url = #{url}
+        </set>
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+ 	<select id="selectNumber" resultType="Integer" parameterType="Map">
+        SELECT
+        count(1)
+        FROM app_message_new      
+        <where>
+ 			id IN
+ 			 <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+                #{Id}
+             </foreach>
+             AND delete_flag = 0 
+        </where>
+    </select>
+
+	  <!--发送更新-->
+     <update id="sendUpdateAppAccountMessage">
+  	    UPDATE app_message_new
+          <set>
+             <if test="status != null">status = #{status},</if>
+             <if test="sendDate != null and sendDate != ''">send_date = #{sendDate},</if>
+             send_num = send_num + 1
+          </set>
+        WHERE id = #{id} AND delete_flag = 0
+	</update>
+
+    <!--批量删除-->
+    <update id="deleteByIds">
+        UPDATE app_message_new SET delete_flag = 1,delete_time = #{deleteTime},delete_id = #{deleteId} WHERE id IN
+        <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+            #{Id}
+        </foreach>
+    </update>
+
+</mapper>

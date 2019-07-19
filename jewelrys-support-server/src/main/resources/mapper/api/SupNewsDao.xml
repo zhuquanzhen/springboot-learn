@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SupNewsDao">
+
+    <select id="selectList" parameterType="Map" resultType="SupNews">
+        SELECT
+        m.id,
+        m.title,
+        m.status,
+        m.pv,
+        m.fav,
+        m.create_date,
+		m.publish_amount
+        FROM sup_news m
+        <where>
+            m.delete_flag = 0
+            <if test="startDate != null and startDate != ''and endDate != null and endDate != ''">AND
+                m.create_date BETWEEN #{startDate} AND
+                #{endDate}
+            </if>
+            <if test="status != null and status != ''">AND m.status = #{status}</if>
+            <if test="title != null and title != ''">AND (m.title like CONCAT('%','${title}','%' ))
+            </if>
+        </where>
+        ORDER BY m.create_date DESC
+    </select>
+
+    <update id="updateByMap" parameterType="Map">
+        UPDATE sup_news m
+      <set>
+        <if test="createDate != null and createDate != ''">m.create_date=#{createDate},</if>
+        <if test="status != null and status != ''">m.status=#{status}</if>
+      </set>
+        <where>
+  			<include refid="where_id"></include>
+        </where>
+    </update>
+
+    <select id="selectListByMap" parameterType="Map" resultType="String">
+        SELECT m.id FROM sup_news m
+        <where>
+		 m.delete_flag = 0	AND
+            <include refid="where_id">
+            </include>
+            <if test="status != null and status != ''">AND m.status=#{status}</if>
+        </where>
+
+    </select>
+
+    <sql id="where_id">
+
+        <if test="list!=null">
+            m.id IN
+            <foreach collection="list" item="id" separator=","
+                     open="(" close=")">
+                #{id}
+            </foreach>
+        </if>
+    </sql>
+
+    <update id="delete" parameterType="Map">
+        UPDATE sup_news m LEFT JOIN com_content cc ON m.content_id= cc.id
+        SET
+        m.delete_flag = #{deleteFlag},
+        m.delete_time = #{deleteTime},
+        m.delete_id = #{delectId},
+        cc.delete_flag = #{deleteFlag},
+        cc.delete_time = #{deleteTime},
+        cc.delete_id = #{delectId}
+        <where>
+
+            <include refid="where_id">
+
+            </include>
+        </where>
+    </update>
+
+    <select id="selectById" resultType="SupNews">
+        SELECT
+            m.id,
+            m.title,
+            sd.name AS label,
+            m.label as labelCode,
+            m.status,
+            m.file_id,
+            m.content_id,
+            m.source,
+            c.content,
+			m.publish_amount
+        FROM
+            sup_news m
+            LEFT JOIN com_content c ON (m.content_id = c.id)
+            LEFT JOIN sys_dict sd ON (sd.code = m.label)
+        WHERE m.id = #{id} AND  m.delete_flag = 0
+    </select>
+
+    <insert id="insert" parameterType="SupNews">
+        INSERT INTO sup_news (id, label, title, file_id, create_date, create_id, status, content_id, source)
+        VALUES (
+            #{id},
+            #{label},
+            #{title},
+            #{fileId},
+            #{createDate},
+            #{createId},
+            #{status},
+            #{contentId}, #{source}
+
+        )
+    </insert>
+
+    <update id="updateSupNews" parameterType="SupNews">
+        UPDATE sup_news s LEFT JOIN com_content cc ON s.content_id= cc.id
+        <set>
+          	<if test="status != null and status != ''">s.status = #{status},</if>
+            <if test="title != null and title != ''">s.title = #{title},</if>
+            <if test="content != null and content != ''">cc.content=#{content},</if>
+            <if test="label != null and label != ''">s.label = #{label},</if>
+            <if test="fileId != null and fileId != ''">s.file_id = #{fileId},</if>
+            s.source = #{source}
+        </set>
+        WHERE s.id=#{id}
+    </update>
+
+    <select id="selectNumber" resultType="SupNews" parameterType="Map">
+        SELECT
+        m.id
+        FROM
+        sup_news m
+        <where>
+
+            <include refid="where_id">
+
+            </include>
+            AND m.delete_flag=0
+        </where>
+    </select>
+    
+      <update id="updatePublishAmount">
+        UPDATE sup_news
+        SET publish_amount = #{publishAmount}
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+</mapper>

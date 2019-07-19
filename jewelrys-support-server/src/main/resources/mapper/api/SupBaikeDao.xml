@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SupBaikeDao">
+
+	<update id="updateByTypeId" parameterType="Map">
+		UPDATE sup_baike s
+		LEFT JOIN com_content cc ON s.content_id= cc.id SET
+		s.delete_flag =
+		#{deleteFlag}, s.delete_time = #{deleteTime},
+		s.delete_id =
+		#{deleteId},
+		cc.delete_flag = #{deleteFlag}, cc.delete_time =
+		#{deleteTime}, cc.delete_id =
+		#{deleteId}
+		WHERE s.type_id = #{typeId}
+	</update>
+
+	<select id="selectNumberByTypeId" parameterType="String"
+		resultType="Integer">
+		SELECT count(1)
+		FROM sup_baike
+		WHERE type_id = #{typeId} AND
+		delete_flag = 0
+	</select>
+
+	<select id="selectList" parameterType="Map" resultType="SupBaike">
+		SELECT
+		b.id,
+		b.title,
+		b.status,
+		b.fav,
+		b.pv,
+		b.publish_date,
+		b.publish_amount
+		FROM sup_baike b
+		<where>
+			b.delete_flag=0
+			<if test="typeId != null and typeId != ''">AND b.type_id = #{typeId}</if>
+			<if test="status != null and status != ''">AND b.status =#{status}</if>
+			<if test="title != null and title != ''">AND b.title like CONCAT('%','${title}','%' )</if>
+
+		</where>
+		ORDER BY b.create_date DESC
+	</select>
+
+
+	<update id="delete" parameterType="Map">
+		UPDATE sup_baike s LEFT JOIN com_content cc ON s.content_id= cc.id SET
+		s.delete_flag = #{deleteFlag}, s.delete_time = #{deleteTime},
+		s.delete_id = #{delectId},
+		cc.delete_flag = #{deleteFlag},
+		cc.delete_time = #{deleteTime}, cc.delete_id =
+		#{delectId}
+		<where>
+
+			<include refid="where_id">
+
+			</include>
+		</where>
+
+
+	</update>
+	<sql id="where_id">
+
+		<if test="list!=null">
+			s.id IN
+			<foreach collection="list" item="id" separator="," open="("
+				close=")">
+				#{id}
+			</foreach>
+		</if>
+	</sql>
+
+
+	<update id="updateByMap" parameterType="Map">
+		UPDATE sup_baike s
+		<set>
+			<if test="publishDate != null and publishDate != '' and status=='yfb'">s.publish_date = #{publishDate},</if>
+			<if test="status != null and status !=''"> s.status=#{status}  </if>
+
+		</set>
+
+
+		<where>
+
+			<include refid="where_id">
+
+			</include>
+		</where>
+	</update>
+
+	<select id="selectById" parameterType="String" resultType="SupBaike">
+		SELECT
+		s.id,
+		s.title,
+		s.summary,
+		s.status,
+		s.file_id,
+		c.content,
+		s.content_id,
+		s.publish_amount
+		FROM
+		sup_baike s
+		LEFT JOIN com_content c ON s.content_id =
+		c.id
+		WHERE s.id = #{id} AND s.delete_flag=0
+	</select>
+	<insert id="insert" parameterType="SupBaike">
+		INSERT INTO sup_baike (id,
+		title, summary, file_id, publish_date, status,
+		create_date, type_id,
+		content_id)
+		VALUES (
+		#{id}, #{title}, #{summary}, #{fileId},
+		#{publishDate}, #{status},
+		#{createDate}, #{typeId}, #{contentId}
+		)
+	</insert>
+
+	<update id="updateSupBaike" parameterType="SupBaike">
+
+		UPDATE sup_baike s LEFT JOIN com_content cc ON s.content_id= cc.id
+		<set>
+			<if test="title != null and title != ''">s.title = #{title},</if>
+			<if test="content != null and content != ''">cc.content=#{content},</if>
+			<if test="summary != null and summary != ''">s.summary = #{summary},</if>
+			<if test="status != null and status != ''">s.status = #{status},</if>
+			<if test="fileId != null and fileId != ''">s.file_id = #{fileId}</if>
+		</set>
+		WHERE s.id=#{id}
+	</update>
+
+	<update id="update" parameterType="SupBaike">
+
+		UPDATE sup_baike s
+		<set>
+			<if test="status != null and status != ''">s.status = #{status}</if>
+		</set>
+		WHERE s.id=#{id}
+	</update>
+
+	<select id="selectNumber" resultType="SupBaike" parameterType="Map">
+		SELECT
+		s.id
+		FROM
+		sup_baike s
+		<where>
+			<include refid="where_id">
+			</include>
+			AND s.delete_flag=0
+		</where>
+	</select>
+
+	<select id="selectListByMap" parameterType="Map" resultType="String">
+		SELECT s.id FROM sup_baike s
+		<where>
+			s.delete_flag = 0 AND
+			<include refid="where_id">
+			</include>
+			<if test="status != null ">AND s.status=#{status}</if>
+		</where>
+
+	</select>
+	
+	  <update id="updatePublishAmount">
+        UPDATE sup_baike
+        SET publish_amount = #{publishAmount}
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+</mapper>

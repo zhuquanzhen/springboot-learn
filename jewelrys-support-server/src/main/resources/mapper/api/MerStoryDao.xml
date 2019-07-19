@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.MerStoryDao">	
+	
+	<select id="selectList" resultType="MerStory">
+		SELECT 
+			a.id,
+			a.title,
+			a.status,
+			a.pv,
+			a.create_date,
+			c.name AS "merName"
+		FROM
+			mer_story a
+			LEFT JOIN mer_info c ON c.id = a.create_id AND c.delete_flag = 0
+		<where>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				a.create_date BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<if test="status != null and status != ''">
+				AND a.status = #{status}
+			</if>
+			<if test="merName != null and merName != ''">
+				AND (c.name like "%"#{merName}"%" OR a.title like "%"#{merName}"%")
+			</if>
+				AND a.delete_flag = 0  AND a.status IN("yfb", "ych", "dcl")
+		</where>
+		ORDER BY create_date DESC
+	</select>
+	
+	<select id="selectFile" resultType="String">
+		SELECT file_id FROM mer_story_file WHERE story_id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectById" resultType="MerStory">
+		SELECT a.id, a.title, a.status, a.reject, a.create_date, c.name AS "merName", c.logo AS "logo", f.content AS "content" FROM mer_story a LEFT JOIN mer_info c ON c.id = a.create_id LEFT JOIN com_content f ON f.id = a.content_id WHERE a.id = #{id} AND a.delete_flag = 0
+	</select>
+	
+	<select id="selectCertNoCount" resultType="Integer">
+		SELECT COUNT(*) FROM mer_story_cert WHERE story_id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectCertNo" resultType="String">
+		SELECT cert_no FROM mer_story_cert WHERE story_id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectContentId" resultType="String">
+		SELECT content_id FROM mer_story WHERE id IN <foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>AND delete_flag = 0
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mer_story(id, title, status, create_date, create_id, content_id) VALUES(#{id}, #{title}, #{status}, #{createDate}, #{createId}, #{contentId})
+	</insert>
+	
+	<update id="updateByMap">
+		UPDATE mer_story SET status = #{status}, audit_id = #{auditId}, audit_date = #{auditDate}, reject = #{reject} WHERE id IN <foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<update id="update">
+		UPDATE mer_story
+		<set>
+			<if test="title != null and title != ''">title = #{title},</if>
+			<if test="contentId !=null and contentId != ''">content_id = #{contentId},</if>
+			<if test="pv != null">pv = #{pv}</if>
+		</set>
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteByMap">
+		UPDATE mer_story SET delete_flag = 1, delete_time = #{deleteTime} , delete_id = #{deleteId} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppMessageDao">
+
+    <!--添加-->
+    <insert id="insert">
+        INSERT INTO app_message (id,label,title,content,url, member, status,send_date,create_date,group_flag, type_code, type_name)
+        VALUES(#{id},#{label},#{title},#{content},#{url},#{member},#{status},#{sendDate},#{createDate},#{groupFlag},#{typeCode},#{typeName})
+    </insert>
+
+    <!--查询-->
+    <select id="selectList" resultType="AppMessage">
+         SELECT 
+         id,
+         label,
+         title,
+         content,
+         url, 
+         member, 
+         status, 
+         create_date,
+         group_flag, 
+         type_code, 
+         type_name
+         FROM app_message 
+        <where>
+            delete_flag = 0
+            <if test="id != null and id != ''">AND id = #{id}</if>
+            <if test="startDate != null and startDate != ''">AND create_date &gt; #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND create_date &lt; #{endDate}</if>
+            <if test="querys != null and querys != ''">AND title like "%"#{querys}"%" </if>
+        </where>
+		order by create_date DESC
+    </select>
+
+    <!--批量删除-->
+    <update id="deleteByIds">
+        UPDATE app_message SET delete_flag = 1,delete_time = #{deleteTime},delete_id = #{deleteId} WHERE id IN
+        <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+            #{Id}
+        </foreach>
+    </update>
+
+    <!--更新-->
+    <update id="update">
+        UPDATE app_message
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="groupFlag != null">group_flag = #{groupFlag},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sendDate != null and sendDate != ''">send_date = #{sendDate},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="member != null and member != ''">member = #{member},</if>
+            label = #{label},
+            url = #{url}
+        </set>
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+ <!--发送更新-->
+    <update id="sendUpdate">
+        UPDATE app_message
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="sendDate != null and sendDate != ''">send_date = #{sendDate}</if>
+        </set>
+        WHERE id = #{id} AND delete_flag = 0
+    </update>
+
+ 	<select id="selectNumber" resultType="Integer" parameterType="Map">
+        SELECT
+        count(1)
+        FROM app_message      
+        <where>
+ 			id IN
+ 			 <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+                #{Id}
+             </foreach>
+             AND delete_flag = 0 
+        </where>
+    </select>
+    
+    <select id="selectById" resultType="AppMessage">
+      SELECT id,label,title,content,url, member, status, create_date,group_flag FROM app_message WHERE delete_flag = 0 AND id = #{id}
+    </select>
+</mapper>

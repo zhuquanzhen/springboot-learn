@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.CerVendorInfoDao">
+
+	 <select id="selectVendorByMertId" resultType="CerVendorInfo">
+	    SELECT cvi.id,cvi.name,cvi.vendor_state,cvi.e_lec FROM mer_vendor mv
+	    LEFT JOIN cer_vendor_info cvi ON cvi.id = mv.vendor_id 
+	    <where>
+	      mv.mert_id = #{id}
+	      <if test="name != null and name != ''">
+		    AND name LIKE CONCAT('%', #{name}, '%')
+		 </if>
+	    </where>
+    </select>
+
+	<select id="selectVendorList" resultType="CerVendorInfo">
+		SELECT cvi.id,cvi.name FROM cer_vendor_info cvi LEFT JOIN  mer_vendor mv ON cvi.id = mv.vendor_id<where> mv.vendor_id IS  NULL AND vendor_state = 0 AND e_lec = 0 <if test="name != null and name != ''">AND name LIKE CONCAT('%', #{name}, '%')</if></where>
+	</select>
+
+</mapper>

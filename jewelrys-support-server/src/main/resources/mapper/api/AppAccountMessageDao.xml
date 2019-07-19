@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppAccountMessageDao">
+
+    <sql id="baseColumns">id,app_account_phone,app_message_new_id,status,send_date,create_date</sql>
+    <insert id="insert">
+      INSERT INTO app_account_message (<include refid="baseColumns"/> )
+      VALUES(#{id},#{appAccountPhone},#{appMessageNewId},#{status},#{sendDate},#{createDate})
+    </insert>
+
+	<update id="update">
+      UPDATE  app_account_message SET app_account_phone = #{appAccountPhone} WHERE app_message_new_id = #{appMessageNewId}
+    </update>
+
+	<select id="selectByAppMessageNewId" resultType="AppAccountMessage">
+	    SELECT <include refid="baseColumns"/> FROM app_account_message
+        WHERE app_message_new_id = #{appMessageNewId}
+	</select>
+
+    <!--批量删除-->
+    <update id="deleteListIds">
+        DELETE FROM app_account_message WHERE app_message_new_id IN
+        <foreach collection="appMessageNewIds" item="Id" open="(" close=")" separator=",">
+            #{Id}
+        </foreach>
+    </update>
+
+    <select id="selectOrderByCreateDate" resultType="AppAccountMessage">
+        SELECT <include refid="baseColumns"/> FROM app_account_message WHERE app_message_new_id = #{appMessageNewId} order by create_date DESC
+    </select>
+
+</mapper>

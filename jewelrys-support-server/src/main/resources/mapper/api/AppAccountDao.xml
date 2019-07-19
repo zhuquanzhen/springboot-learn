@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.AppAccountDao">
+	
+	<select id="selectList" resultType="AppAccount">
+		SELECT 
+			id, phone, name, status, register_date, login_date, num, story_num, platform, version, device_uid 
+		FROM 
+			app_account 
+		<where>
+			delete_flag = 0 
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND register_date BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<if test="status != null and status != ''">
+				AND status = #{status}
+			</if>
+			<if test="val != null and val != ''">
+				AND (name LIKE CONCAT('%', #{val}, '%') OR phone LIKE CONCAT('%', #{val}, '%'))
+			</if>
+		</where>
+		ORDER BY register_date DESC
+	</select>
+	
+	<select id="selectById" resultType="AppAccount">
+		SELECT id, phone, name, status, register_date, login_date, num, story_num, platform, version, device_uid, avatar FROM app_account WHERE id = #{id} AND delete_flag = 0 
+	</select>
+	
+	<select id="selectCount" resultType="Integer">
+		SELECT COUNT(*) FROM app_account WHERE delete_flag = 0
+	</select>
+	
+    <update id="updateStatus">
+ 		 UPDATE app_account SET status = #{type} WHERE id IN
+        <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+            #{Id}
+        </foreach>
+	</update>	
+
+	<update id="deleteByIds">
+		UPDATE app_account SET delete_flag = 1,delete_time = #{deleteTime},delete_id = #{deleteId} WHERE id IN <foreach collection="Ids" open="(" separator="," close=")" item="id">#{id}</foreach>
+	</update>
+	
+	<select id="selectByPhone" resultType="AppAccount">
+	 SELECT 
+	 		id, phone, name, status, register_date, login_date, num, story_num, platform, version, device_uid
+	 FROM 
+	        app_account 
+	 where  
+	        delete_flag = 0 AND phone = #{phone}
+	</select>
+	
+	
+	<select id="selectNumber" resultType="Integer" parameterType="Map">
+        SELECT
+        count(1)
+        FROM app_account      
+        <where>
+ 			id IN
+ 			 <foreach collection="Ids" item="Id" open="(" close=")" separator=",">
+                #{Id}
+             </foreach>
+             AND delete_flag = 0 
+             <if test="status != null and status != ''">
+              AND status = #{status}
+             </if>
+            
+        </where>
+    </select>
+    
+    
+    <select id="selectReceiver" resultType="AppAccount">
+    SELECT 
+			id, phone, name, status, register_date, login_date, num, story_num, platform, version, device_uid 
+		FROM 
+			app_account 
+			<where>
+				delete_flag = 0 AND status = 1
+				<if test="val != null and val != ''">
+				AND name LIKE CONCAT('%', #{val}, '%') OR phone LIKE CONCAT('%', #{val}, '%')
+			</if>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND register_date BETWEEN #{startDate} AND #{endDate}
+			</if>
+			</where>
+		ORDER BY register_date DESC
+    </select>
+</mapper>

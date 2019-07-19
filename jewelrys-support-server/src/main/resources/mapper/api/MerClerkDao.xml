@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.MerClerkDao">
+    
+    <select id="selectByMertId" resultType="String">
+    	SELECT phone FROM mer_clerk WHERE mert_id = #{id} AND delete_flag = 0
+    </select>
+    
+     <update id="deleteMerClerkByMertId">
+      UPDATE mer_clerk SET delete_flag = 1,delete_time = #{deleteTime},delete_id = #{deleteId} where mert_id = #{id}
+    </update>
+</mapper>

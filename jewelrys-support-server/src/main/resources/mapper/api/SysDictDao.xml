@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.SysDictDao">
+
+    <select id="selectByTypeCode" resultType="SysDict">
+        SELECT id, code, name, order_num, remarks, parent_id, status, type_code FROM sys_dict WHERE type_code = #{typeCode} AND delete_flag = 0 AND parent_id = 0 ORDER BY order_num DESC
+    </select>
+	
+	<select id="selectByParentId" resultType="SysDict">
+		SELECT id, code, name, order_num, remarks, parent_id, status, type_code FROM sys_dict WHERE parent_id = #{id} AND delete_flag = 0 ORDER BY order_num DESC
+	</select>
+
+    <select id="selectByTypeCodeSimpleness" resultType="SysDict">
+        SELECT code, name FROM sys_dict WHERE type_code = #{typeCode} AND delete_flag = 0 AND status = 1 ORDER BY order_num DESC
+    </select>
+	
+	<select id="selectByTypeCodeAndCode" resultType="SysDict">
+		SELECT id, code FROM sys_dict WHERE type_code = #{typeCode} AND delete_flag = 0 AND code = #{code}
+	</select>
+	
+	<select id="selectParentName" resultType="String">
+		SELECT name FROM sys_dict WHERE id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="selectById" resultType="SysDict">
+		SELECT id, code, name, order_num, remarks, parent_id, status, type_code FROM sys_dict WHERE id = #{id} AND delete_flag = 0
+	</select>
+	
+	<select id="findByParentId" resultType="Integer">
+		SELECT id FROM sys_dict WHERE parent_id = #{parentId} AND delete_flag = 0
+	</select>
+	
+    <insert id="insert">
+        INSERT INTO sys_dict (code, name, order_num, remarks, type_code, parent_id, status) VALUES (#{code}, #{name}, #{orderNum}, #{remarks}, #{typeCode}, #{parentId}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_dict
+        <set>
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="name != null and name != ''">name = #{name},</if>          
+            <if test="parentId != null and parentId != ''">parent_id = #{parentId},</if>
+            <if test="typeCode != null and typeCode != ''">type_code = #{typeCode},</if>
+            <if test="status != null">status = #{status},</if>
+             remarks = #{remarks}, order_num = #{orderNum}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByMap">
+        UPDATE sys_dict SET delete_flag = 1, delete_time = #{deleteTime}, delete_id = #{deleteId} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+    </delete>
+    
+    <select id="selectByTypeAndCode" resultType="SysDict">
+    	SELECT id, code, name, order_num, remarks, parent_id, status, type_code FROM sys_dict WHERE type_code = #{typeCode} AND code = #{code} AND status = 1 AND delete_flag = 0 ORDER BY order_num DESC
+    </select>
+    
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.ComAreaDao">
+
+    <select id="selectList" resultType="ComArea">
+        SELECT id, area_name FROM com_area WHERE area_parent_id = #{areaParentId}
+    </select>
+    
+    <select id="selectByParentId" resultType="ComArea">
+        SELECT id,area_name FROM com_area WHERE area_parent_id = #{areaParentId}
+    </select>
+    
+    <select id="selectById" resultType="ComArea">
+    	 SELECT id,area_name FROM com_area WHERE id =#{id}
+    </select>
+    
+</mapper>

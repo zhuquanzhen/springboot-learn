@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huixdou.api.dao.MerInfoDao">
+	
+	<sql id="baseColums">id, name, short_name, contact, contact_number, province, city, area, addr, logo, brief, username, password, salt, nickname, phone, status, publicity, publicity_status, publicity_reject, publicity_date, publicity_perm, parent_id, cer_num, vendor_num,create_date</sql>
+	
+	<select id="selectByUserName" resultType="MerInfo">
+		SELECT <include refid="baseColums"/>  FROM mer_info WHERE username = #{username} AND delete_flag = 0
+	</select>
+	
+	<select id="findByPhone" resultType="String">
+		SELECT phone FROM mer_info WHERE phone = #{phone} AND delete_flag = 0 UNION SELECT phone FROM mer_user WHERE phone = #{phone} AND delete_flag = 0
+	</select>
+	
+	<select id="selectByPhone" resultType="MerInfo">
+		SELECT <include refid="baseColums"/>  FROM mer_info WHERE phone = #{phone} AND delete_flag = 0
+	</select>
+	
+	<select id="selectByName" resultType="MerInfo">
+		SELECT <include refid="baseColums"/>  FROM mer_info WHERE name = #{name} AND delete_flag = 0
+	</select>
+	
+	<select id="selectById" resultType="MerInfo">
+        SELECT <include refid="baseColums"/>  FROM mer_info WHERE id = #{id} AND delete_flag = 0
+    </select>
+	
+	<select id="selectMerList" resultType="MerInfo">
+		SELECT id, name FROM mer_info WHERE delete_flag = 0
+	</select>
+	
+	<select id="selectCount" resultType="Integer">
+		SELECT COUNT(*) FROM mer_info WHERE delete_flag = 0
+	</select>
+	
+	<select id="selectList" resultType="MerInfo">
+		SELECT <include refid="baseColums"/> FROM mer_info 
+		<where>
+		  delete_flag = 0 
+		<if test="name != null and name != ''">AND name LIKE CONCAT('%', #{name}, '%')</if>
+		<if test="val != null and val != ''">
+		   AND (name LIKE CONCAT('%',#{val},'%') OR short_name LIKE CONCAT('%',#{val},'%') OR contact LIKE CONCAT('%',#{val},'%') OR contact_number LIKE CONCAT('%',#{val},'%'))	
+		</if>
+		</where>
+	</select>
+	
+	<select id="selectByParentId" resultType="MerInfo">
+		SELECT <include refid="baseColums"/> FROM mer_info WHERE delete_flag = 0 AND parent_id = #{id}
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mer_info(name, short_name, contact, contact_number, province, city, area, addr, logo, brief, username, password, salt, nickname, phone, publicity_perm, parent_id, create_date) VALUES (#{name}, #{shortName}, #{contact}, #{contactNumber}, #{province}, #{city}, #{area}, #{addr}, #{logo}, #{brief}, #{username}, #{password}, #{salt}, #{nickname}, #{phone}, #{publicityPerm}, #{parentId},#{createDate})
+	</insert>
+	
+	<insert id="insertMerRole">
+		INSERT mer_user_role(user_id, role_id) VALUES(#{userId}, #{roleId})
+	</insert>
+	
+	<update id="update">
+		UPDATE
+			mer_info
+		<set>
+		    <if test="username != null and username != ''">username = #{username},</if>
+		    <if test="name != null and name != ''">name = #{name},</if>
+			<if test="shortName != null and shortName != ''">short_name = #{shortName},</if>
+			<if test="contactNumber != null and contactNumber != ''">contact_number = #{contactNumber},</if>
+			<if test="password != null and password != ''">password = #{password},</if>
+			<if test="salt != null and salt != ''">salt = #{salt},</if>
+			contact = #{contact},
+		    province = #{province},
+			city = #{city},
+			area = #{area},
+			addr = #{addr},
+			logo = #{logo},
+			brief = #{brief},
+			nickname = #{nickname},
+		    phone = #{phone}, 
+			publicity_perm = #{publicityPerm}
+		</set>
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateStatus">
+		UPDATE mer_info SET status = #{status} WHERE id = #{id}
+	</update>
+	
+	<update id="deleteByMap">
+		UPDATE mer_info SET delete_id = #{deleteId}, delete_time = #{deleteTime}, delete_flag = 1 WHERE id = #{id}
+	</update>
+		
+	<update id="deleteChildrenByMap">
+	    UPDATE mer_info SET delete_id = #{deleteId}, delete_time = #{deleteTime}, delete_flag = 1 WHERE parent_id = #{id}
+	</update>
+		
+    <select id="selectPublicityList" parameterType="Map" resultType="MerInfo">
+        SELECT
+        id,
+        name,
+        publicity_status,
+        publicity
+        FROM mer_info
+        <where>
+            delete_flag = 0
+            <if test="startDate != null and startDate != ''and endDate != null and endDate != ''">AND publicity_date
+                BETWEEN #{startDate}
+                AND #{endDate}
+            </if>
+            <if test="publicityStatus != null and publicityStatus != ''">AND publicity_status = #{publicityStatus}
+            </if>
+            <if test="name != null and name != ''">AND name like CONCAT('%','${name}','%' )
+            </if>
+           	AND publicity_status IN("yfb", "ych", "dcl")
+        </where>
+        ORDER BY publicity_date DESC
+    </select>
+
+    <update id="updateByMap">
+		UPDATE mer_info SET publicity_status = #{publicityStatus}, publicity_reject = #{publicityReject} WHERE id IN<foreach collection="id" index="index" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+    
+    <delete id="deleteMerVendor">
+       DELETE FROM mer_vendor WHERE mert_id = #{id}
+    </delete>
+    
+    <insert id="insertVendor">
+      INSERT INTO mer_vendor (mert_id,vendor_id) VALUES 
+          <foreach collection="Ids" item="Id" separator=",">
+      		(#{mertId},#{Id})
+          </foreach>
+    </insert>
+    
+    <select id="selectCountVendor" resultType="Integer">
+     select count(1) from mer_vendor where vendor_id = #{id}
+    </select>
+    
+    <update id="updateVendorNum">
+      UPDATE mer_info set vendor_num = #{vendorNum} where id =#{id}
+    </update>
+    
+     <update id="updateCerNum">
+      UPDATE mer_info set cer_num = #{cerNum} where id =#{mertId}
+    </update>
+    
+     <select id="selectCertificatesNum" resultType="Integer">
+      SELECT COUNT(*) FROM cer_info  WHERE mert_id = #{mertId} AND  delete_flag = 0
+    </select>
+    
+    <select id="selectVendor" resultType="Integer">
+      SELECT vendor_id FROM mer_vendor WHERE  mert_id = #{mertId}
+    </select>
+    
+    <select id="selectClintIdByCerVendor" resultType="String">
+      SELECT client_id FROM cer_vendor_info WHERE id IN
+    <foreach collection="vendorIds" index="index" item="vendorId" open="(" close=")" separator=",">
+        #{vendorId}
+    </foreach>
+    </select>
+    
+    
+</mapper>
